@@ -1,0 +1,93 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Homework
+
+1.
+
+When I search for the line,
+I find three matches.
+
+The first match is a goto line to jump to this statement.
+
+The other two matches are the same
+because the line is repeated twice.
+
+He removed this line probably because:
+1. It wasn’t being referenced anymore
+2. To clean up code because it was repeated twice.
+
+It wasn’t necessary to remove this line because,
+It is not being referenced anymore,
+so it would never execute
+
+2.
+
+This patch might raise the following problems:
+
+a. This time-format uses English for displaying,
+so it would be problematic in countries
+where English is not the spoken/written language.
+The company must be careful when distributing internationally.
+
+b. 
+
+The alternative case_long_iso_time_style is never jumped to,
+Because the patch removes this line.
+This might be a problem if the default format is invalid for some reason.
+Maybe if the locale is set to something different.
+Perhaps, if the long time format style is required for some specific purpose, 
+it cannot be accessed at all if this patch is applied.
+
+3.
+
+We run the command:
+$ ./randline.py /dev/null
+
+/dev/null is an empty file with no lines.
+
+The output is:
+
+Traceback (most recent call last):
+  File "./randline.py", line 70, in <module>
+    main()
+  File "./randline.py", line 64, in main
+    sys.stdout.write(generator.chooseline())
+  File "./randline.py", line 34, in chooseline
+    return random.choice(self.lines)
+  File "/usr/lib64/python2.6/random.py", line 261, in choice
+    return seq[int(self.random() * len(seq))]  
+	# raises IndexError if seq is empty
+IndexError: list index out of range
+
+I read through the randline.py program to figure out why an error was raised.
+
+This error is raised because the program doesn’t have error handling,
+when there are 0 lines in a file.
+
+The chooseline() function calls the random.choice() function.
+The random.choice() functions takes as argument a list with 1 or more elements.
+Since our file has 0 lines, the list given has 0 elements.
+The random.choice() functions tries to return a random element,
+by giving it a random index,
+but every index would be out of range because the list has no elements.
+
+4.
+
+When we run randline.py with python3, we get:
+
+File "./randline.py", line 65
+    except IOError as (errno, strerror):
+                      ^
+SyntaxError: invalid syntax
+
+This is because,
+Python3 no longer supports automatic tuple unpacking.
+
+So the line, except IOError as (errno, strerror) would be invalid.
+The correct python3 syntax could be:
+
+except IOError as (e):
+	errno=e.errno
+	strerror=e.strerror

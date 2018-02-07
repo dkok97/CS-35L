@@ -1,0 +1,85 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+We run the following command:
+
+$ sort —version
+sort (GNU coreutils) 8.22
+
+To make sure the sort is up to date.
+
+To test the sort function, 
+we create a file containing
+10,000,000 random single-precision
+floating point numbers,
+one per line with no white space.
+
+We do so using od -tf -N 80000000
+because one floating point is 8 bytes
+and -N is used to specify the number of bytes.
+
+We need to format this file.
+First we replace the white spaces with newline.
+Second, we remove all the octal numbers and spaces.
+
+$ od -tf -N 80000000 < /dev/urandom |
+tr -s [:blank:] ‘\n’ |
+sed 's/^[0-7]* *//' > test.txt
+
+We now test sort on this file
+with varying number of threads.
+
+1. No threads
+
+$  time -p sort -g test.txt > /dev/null
+
+real 36.12
+user 199.22
+sys 0.52
+
+2. 1 thread
+
+$  time -p sort -g --parallel=1 test.txt > /dev/null
+
+real 176.50
+user 176.28
+sys 0.21
+
+2. 2 threads
+
+$  time -p sort -g --parallel=2 test.txt > /dev/null
+
+real 96.99
+user 184.83
+sys 0.34
+
+2. 5 threads
+
+$  time -p sort -g --parallel=4 test.txt > /dev/null
+
+real 56.43
+user 193.15
+sys 0.38
+
+2. 8 threads
+
+$  time -p sort -g --parallel=8 test.txt > /dev/null
+
+real 36.56
+user 194.20
+sys 0.51
+
+Firstly, we notice that the sort function
+without any threads runs similarly to
+the sort function with 8 threads.
+This shows us that the sort function is 
+multithreaded with a maximum of 8 threads.
+
+Secondly, we notice that the real time
+reduces with the increase in threads, 
+which is a pro of multithreading however,
+The sys time increases which 
+is a con of multithreading because 
+with an increase in the number of threads,
+the number of system calls increases.

@@ -1,0 +1,118 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Homework: Verifying and publishing a backported change
+
+2. We create a new branch using:
+
+$ git checkout -b 'quote' 'v3.0'
+
+3. We add our patch created in the lab part using:
+
+$ patch -p1 < quote-3.0-patch.txt
+
+4. I read the documentation for:
+ add-change-log-entry-other-window (C-x 4 a).
+
+5. We open emacs and type C-x 4 a to access
+the the ChangeLog. We only create and individual
+changeLog and not one for each file. 
+We follow the changeLog format by reading the documentation.
+
+6. We commit the changes made to the files using:
+
+$ git add .
+$ git commit -aF changeLog
+
+7. We create a patch using:
+
+$ git format-patch -1 --stdout > formatted-patch.txt
+
+This creates a file with all out changes
+and we can share this with our partner.
+
+8. I partnered up with Anurang from my lab to verify
+if out patches work for each other.
+
+He sent me his patch, and I sent him mine.
+To verify it, I create a new temporary branch called temp.
+
+$ git checkout v3.0 -b temp
+
+I moved his patch to my directory and called it 
+formatted-patch_anu.txt
+
+To apply the patch, I used:
+
+$ git am < formatted-patch_anu.txt
+
+I ran git log to check if the patch was applied.
+I saw the output as:
+
+commit cdd866890a599d33eb0b7c95a4cc490f995f2d0d
+Author: Anurang Bhuta <anurang@lnxsrv05.seas.ucla.edu>
+Date:   Tue Dec 5 19:32:12 2017 -0800
+
+    2017-12-05 Anurang Bhuta <anurang@lnxsrv05.seas.ucla.edu>
+    
+        maint: quote 'like this' or "like this", not `like this'
+        * cmp.c, diff.c, diff3.c, dir.c, sdiff.c, util.c:
+        changed ` to ' for only code.
+
+
+I then build the program using:
+
+$ ./bootsrap
+$ ./configure
+$ make
+$ make check
+
+To check if the patch was successful, I ran :
+
+$ ./src/diff . -
+
+Output:
+
+./src/diff: cannot compare '-' to a directory
+
+Therefore, since it shows ' instead of `,
+my partner’s patch was applied successfully.
+
+9. To verify if the ChangeLog entry works, I ran:
+
+$ make distdir
+
+This creates a new folder diffutils-3.0.1-cdd8 
+I cd into the folder and inspect the ChangeLog file
+
+$ emacs ChangeLog
+
+The first entry in the ChangeLog is the log entry
+is my partner’s log entry shown above. Therefore,
+the patch was successful.
+
+10. I exit the server I am in and log in again
+using:
+
+$ ssh -X dinkar@lnxsrv.seas.ucla.edu
+
+I go to the right directory using:
+
+$ cd ~eggert/src/gnu/emacs
+
+I then run gitk in this directory but it failed.
+This is because the path was not correct.
+So I change it to:
+
+$ export PATH=/usr/local/cs/bin:$PATH
+
+And I run gitk again.
+
+This opens up a gui that shows us all the commits.
+I scroll down to the the commit not newer than
+25th Jan 2015 and take a screenshot.
+A description of the screenshot is in:
+gitk-description.txt
+
+

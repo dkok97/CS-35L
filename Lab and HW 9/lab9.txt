@@ -1,0 +1,171 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Laboratory: Managing a backported change
+
+1. We first create a new directory after logging in to the linux server
+and get a copy of the Diffutils repository, in Git format using:
+
+$ git clone git://git.savannah.gnu.org/diffutils.git
+
+We clone this from its main Savannah repository.
+
+2. We then get a log of changes (commits) to Diffutils’ master branch using:
+
+$ git log > git-log.txt
+
+3. We also get a list of tags used for Diffutils using:
+
+$ git tag > git-tags.txt
+
+4. To find the commit in the git-log.txt file, we open it using vim.
+To find our keyword (‘maint: quote ……’), we hit ‘?’ And start typing
+what we are looking for.
+This takes us to the required commit in the file.
+We copy the commit no.
+To generate a patch for the commit, we search the man page for git
+and find the appropriate command:
+
+$ git format-patch -1 62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f
+
+Where, the string at the end above is the commit no. that we found.
+This generates a .patch file, which we then move to a txt file using:
+
+$ mv 0001-maint-quote-like-this-or-like-this-not-like-this.patch
+
+5. We use the following command to checkout to v3.0:
+
+$ git checkout v3.0 -b v3
+
+6. Patched the file created previously using:
+
+$ patch -p1 < quote-patch.txt 
+
+Some of the files didn’t patch because it couldn’t figure out 
+what file to patch to we skip those by hitting enter.
+
+7. We run:
+
+$ git status
+
+Which shows us what files have been modified and untracked and 
+confirms that the patch was applied successfully.
+
+8. We look up the documentation on vc-diff (C-x v =) and 
+vc-revert (C-x v u). Furthermore, I also learnt how to use 
+diff-apply-hunk (C-c C-a) and diff-goto-source (C-c C-c) functions.
+
+9. First, we revert the changes in all the non .c files.
+We do this by opening the files using emacs and hitting
+vc-diff (C-x v =) and vc-revert (C-x v u). 
+This reverted all the changes.
+
+Next, to revert the changes to the .c files, we use
+diff-apply-hunk (C-c C-a) and diff-goto-source (C-c C-c).
+We first generate the diff buffer and apply diff-apply-hunk
+to the character strings. (We want to keep these changes).
+We use C-u C-c C-a to undo the hunk. For all the other changes
+which were all comments, we reverted back the changes.
+(Changed ‘ to `).
+
+Lines that were reverted back in each file:
+
+src/analyze.c (all)
+src/cmp.c (36, 364, 377)
+src/context.c (all)
+src/diff.c (40, 57 (3 lines), 92, 98)
+src/diff3.c (35, 159, 1475)
+src/dir.c (84, 125, 234)
+src/ifdef.c (all)
+src/io.c (all)
+src/sdiff.c (35, 92, 747)
+src/side.c (all)
+src/util.c (27, 121, 146, 190, 241, 270, 650)
+
+
+10. We now need to apply the rejected changes to the .c files.
+These changes were rejected because the appropriate line to replace
+could not be found.
+To find the rejected files, we run the following command in the src folder:
+
+$ find . -type f -name "*.c.rej"
+
+This outputs:
+
+./diff.c.rej
+./diff3.c.rej
+
+We open these with emacs and manually replace ‘ with `
+in diff.c and diff3.c at the necessary lines. (Changes in total 6 lines).
+
+11. Remove all the untracked files using:
+
+$ git clean -f
+
+12. After all the editing, we run git status and get the output:
+
+# On branch v3
+# Changed but not updated:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#	modified:   src/cmp.c
+#	modified:   src/diff.c
+#	modified:   src/diff3.c
+#	modified:   src/dir.c
+#	modified:   src/sdiff.c
+#	modified:   src/util.c
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+
+These are all the files that we made changes to.
+
+We put all the changes into a txt using:
+
+$ git diff > quote-3.0-patch.txt
+
+This generates a new patch with our modifications.
+The file has 326 lines, which seems right according
+to the assignment website.
+
+13. I build the resulting modified version of Diffutils.
+To do so, I read how to in the README-hacking file.
+
+./bootstrap
+./configure
+make
+make check
+
+The first command didn’t work because my $PATH was incorrect.
+So I changed that using:
+
+$ export PATH=/usr/local/cs/bin:$PATH
+
+To test the modified diff, we run the commands:
+
+$ diff . -
+$ diff --help
+
+The output does not use `, but instead uses ‘.
+This means that our changes have been successfully applied.
+
+14. To do a sanity check, we use the just-built diff to compare the 
+source code of Diffutils 3.0 to the source code of your modified version.
+
+We put the above repos in two separate directories called 
+diffutils-3.0 and diffutils-3.0-patch.
+We copy our modified src folder into the new directory, and checkout to
+the original directory in our current repo.
+We then run:
+
+$ diffutils-3.0-patch/diff -pru diffutils-3.0 diffutils-3.0-patch/ > \
+quote-3.0-test.txt
+
+15. We compare the two files using:
+
+$ diff quote-3.0-test.txt quote-3.0-patch.txt
+
+The only differences that were in the output were of the usage of
+` and ‘. Since these are trivial changes, they have no affect on
+the actual behavior of diff, and are innocous.

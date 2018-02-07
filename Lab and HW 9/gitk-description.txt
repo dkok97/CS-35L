@@ -1,0 +1,37 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Homework: gitk screenshot description
+
+We have the following parts to the screenshot.
+
+1. Upper left:
+
+This window shows us a tree like structure.
+It is a hierarchical tree of all the commits
+and their commit messages and their relationships 
+with the branches of the repository. We also see 
+the position of the HEAD pointer.
+
+2. Upper right:
+
+The left part has the list of the authors of all
+the commits along with their email. The right part
+has the list of dates of when the commits were made.
+
+3. Bottom left:
+
+This has the changeLog of the commit.
+The changeLog contains the Author, committer,
+parent node, child node, branches and what it
+follows and precedes. We also have the file changes
+in the format that would be outputted by the diff
+command.
+
+4. Bottom right:
+
+This window displays the files impacted by the commit.
+
+In the middle of the screenshot, we also see the
+SHA1 ID of the commit.

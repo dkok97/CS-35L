@@ -1,0 +1,165 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Lab: Debugging a C program
+
+We first log into the linux server,
+and download and untar the buggy version of coreutils using wget, and tar.
+
+$ wget http://web.cs.ucla.edu/classes/fall17/cs35L/assign/coreutils-with-bug.tar.gz
+$ tar -zxvf coreutils-with-bug-tar.gz
+$ cd coreutils-with-bug
+
+We then configure and make the file.
+
+$ ./configure
+$ make
+
+This raises an error:
+
+In file included from utimecmp.c:41:
+utimens.h:2: error: conflicting types for 'futimens'
+/usr/include/sys/stat.h:374: note: previous declaration of 'futimens' was here
+make[3]: *** [utimecmp.o] Error 1
+make[3]: Leaving directory `/w/home.09/ma/ugrad/dinkar/coreutils-with-bug/lib'
+make[2]: *** [all] Error 2
+make[2]: Leaving directory `/w/home.09/ma/ugrad/dinkar/coreutils-with-bug/lib'
+make[1]: *** [all-recursive] Error 1
+make[1]: Leaving directory `/w/home.09/ma/ugrad/dinkar/coreutils-with-bug'
+make: *** [all] Error 2
+
+As stated in the assignment page, we rebuild coreutils with the renaming patch.
+We acquire the patch using wget.
+
+$ wget http://web.cs.ucla.edu/classes/fall17/cs35L/assign/coreutils.diff
+
+We run the following command to patch this file:
+
+$ patch -p0 < coreutils.diff
+
+The output was:
+
+patching file lib/utimens.c
+patching file lib/utimens.h
+patching file src/copy.c
+patching file src/tee.c
+patching file src/touch.c
+
+We run make again.
+We notice that there are no errors this time.
+This is because the patch fixed the bug.
+We use vim to read through the patch and figure out the fix.
+
+The error was being raised because there were multiple,
+conflicting types of the function 'futimens’.
+
+The patch renamed every occurrence of futimens to coreutils_futimens.
+It also renamed every occurrence of tee to coreutils_tee.
+This gets rid of all declaration conflicts.
+
+We reproduce the buggy version of coreutils to fix the issue ourselves.
+We first run the commands on the assignment webpage and create a temp directory.
+
+$ tmp=$(mktemp -d)
+$ cd $tmp
+$ touch -d '1918-11-11 11:00 GMT' wwi-armistice
+$ touch now
+$ sleep 1
+$ touch now1
+$ TZ=UTC0 ls -lt --full-time wwi-armistice now now1
+
+We run the buggy ls on these files using:
+
+$ 
+
+and get the following output:
+
+-rw-r--r-- 1 dinkar maugrad 0 1918-11-11 03:00:00.000000000 -0800 wwi-armistice
+-rw-r--r-- 1 dinkar maugrad 0 2017-11-01 09:32:40.833813122 -0700 now1
+-rw-r--r-- 1 dinkar maugrad 0 2017-11-01 09:32:36.445605365 -0700 now
+
+This is incorrect since the first file is older than the other two and must be last.
+
+I first use vim to go through the source code ls.c.
+Since the file is large, I search for the keyword ’sort’.
+Using this, I find a function, called sort_files(), that might be the issue.
+
+To fix this issue, we use gdb to debug the source code.
+
+$ gdb ~/coreutils-with-bug/src/ls
+
+We add a break-point to the sort_files() function using:
+
+$ break sort_files()
+
+We use ’n’ to go through the function.
+We find out that compare_mtime handles some sort of time comparison.
+So we set another break-point at compare_mtime.
+
+This sets a break-point in the file timespec.h.
+
+So I exit gdb and examine this file. 
+There is a function in the file that compares two values like:
+
+/* Return negative, zero, positive if A < B, A == B, A > B, respectively.
+   Assume the nanosecond components are in range, or close to it.  */
+static inline int
+timespec_cmp (struct timespec a, struct timespec b)
+{
+  int diff = a.tv_sec - b.tv_sec;
+  return diff ? diff : a.tv_nsec - b.tv_nsec;
+}
+
+We notice that the problem is in this function.
+The diff between two files is sometimes so large, 
+that is causes integer overflow and we get an incorrect value.
+
+Instead of performing integer subtraction,
+we can assign 3 values to diff based on the files being compared:
+
+1: if a.tv_sec > b.tv_sec
+0: a.tv_sec = b.tv_sec
+-1: a.tv_sec < b.tv_sec
+
+To implement these changes, I create a duplicate of the files, 
+and use vim to edit the timespec.h file.
+Using these new file and the old file, I create a diff file:
+
+$ diff -u ~/coreutils-with-bug/lib/timespec.h timespec.h > lab4.diff
+
+We change this into the form of ChangeLog Entry by editing it using vim.
+
+We now try to reproduce the problem in our home directory,
+on the SEASnet Linux servers, instead of using the $tmp directory.
+
+To do this we cd into the home directory and run the following commands:
+
+$ touch -d '1918-11-11 11:00 GMT' wwi-armistice
+$ touch now
+$ sleep 1
+$ touch now1
+$ TZ=UTC0 ls -lt --full-time wwi-armistice now now1
+
+This outputs:
+
+-rw-r--r-- 1 dinkar maugrad 0 2054-12-17 09:28:16.000000000 -0800 wwi-armistice
+-rw-r--r-- 1 dinkar maugrad 0 2017-11-01 10:17:38.514185000 -0700 now1
+-rw-r--r-- 1 dinkar maugrad 0 2017-11-01 10:17:35.786817000 -0700 now
+
+We see that the year 1918 for the first file is changed to 2054.
+
+This is because the SEASNet server uses a 32 bit unsigned NFS system, 
+which is different from the local linux file system that uses a signed 64 bit system.
+
+Therefore, the SEASNet server only reads the last 32 bits, which causes
+the year 1918 to be printed as 2054.
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,68 @@
+#!/bin/sh
+
+#the directory is the first arguement
+d=$1
+
+files=`ls -a $d | sort`
+
+temp=$IFS
+#store original IFS in temp for restoration later
+IFS=$'\n'
+#change IFS to newline to seperate files with newline and not space
+
+declare -a arrayOfFiles
+#declare an array to hold all the files
+
+let count=0
+#count variable is the number of files we were able to read
+
+for file in $files
+do
+if [ ! -r "$d/$file" ]
+then
+echo "$file is not readable"
+fi
+#above if condition is to check of the file is readable or not
+if [ -r "$d/$file" ] && [ -f "$d/$file" ] #if conditions to only process those files that are readable and regular
+then
+if [ "${file:0:1}" == "." ] #first add those files starting with a '.' to the array
+then
+	arrayOfFiles[$count]="$d/$file"
+let count=count+1
+fi
+fi
+done 
+
+#below loop ingores files that start with '.' and adds the rest of the files
+for file in $files
+do
+if [ -r "$d/$file" ] && [ -f "$d/$file" ]
+then
+if [ "${file:0:1}" != "." ]
+then
+	arrayOfFiles[$count]="$d/$file"
+let count=count+1
+fi
+fi
+done
+
+#below loop ignores files that are already hardlinks, compares all the files after the current file, check if they are the same using cmp
+#if they are the same (cmp returns 0), it hard linkes the exisiting file (using option -f)
+for ((i=0; i<$count; i++))
+do
+	file1="${arrayOfFiles[$i]}"
+	if [ ! -L "$d/$file1" ]
+	then
+		for ((j=$i+1; j<$count; j++))
+		do
+			file2="${arrayOfFiles[$j]}"
+			if cmp -s "$file1" "$file2"
+			then
+				ln -f "$file1" "$file2"
+			fi
+		done
+	fi 					
+done
+
+IFS=$temp
+#IFS restores

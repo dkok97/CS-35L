@@ -1,0 +1,219 @@
+Dinkar Khattar
+
+Lab 2: Shell Scripting 
+
+204818138
+
+Lab 4
+
+We log into the seasnet server and change the locale using the command:
+
+$ export LC_ALL='C'
+
+We confirm this by running:
+
+$ locale
+
+We then go into the following directory: /usr/share/dict/words, and copy these words into a new file (along with sorting):
+
+$ sort /usr/share/dict/words > words
+
+We then use the following command to get a copy of the webpage of the assignment that is from the course website: 
+
+$ wget http://web.cs.ucla.edu/classes/fall17/cs35L/assign/assign2.html
+
+We then run the commands on the website as follows:
+
+1.
+
+$ cat assign2.html | tr -c 'A-Za-z' '[\n*]' > output1
+$ cat output1
+
+This outputs the previous html file with one word per line and many blank lines.
+This is because the above tr command with the -c (complement) option finds every character apart from characters between A-Z and a-z and replaces them with a new line, like spaces, commas, etc. So the output is the words from the html file with newlines between them for every non-letter character that was there.
+
+2.
+
+$ cat assign2.html | tr -cs 'A-Za-z' '[\n*]' > output2
+$ cat output2
+
+This output is the same as output1 but without any blank lines. The -s (squeeze-repeats) option gets rid of multiple occurrences of the newline characters that replaces the non-lettered characters as stated in the command above. So if there are more than one newline characters repeated, it replaces it with just one newline character. (It does that with every other repeated character too)
+
+3.
+
+$ cat assign2.html | tr -cs 'A-Za-z' '[\n*]' | sort > output3
+$ cat output3
+
+This output is the same as output2 (replaces non-letter characrte with new lines and squeezes repeated characters with just one occurrence) but it is sorted because it is piped into the sort command after. Each line is sorted based on the ASCII rules defined by the ‘C’ locale.
+
+4.
+
+$ cat assign2.html | tr -cs 'A-Za-z' '[\n*]' | sort -u > output4
+$ cat output4
+
+This output is the same as output3 (replaces non-letter characrte with new lines and squeezes repeated characters with just one occurrence and sorts each line based on ASCII rules) but the added -u option sorts it uniquely, that is, all duplicate characters are deleted. The final output is a sorted list where each line is unique.
+
+5.
+
+$ cat assign2.html | tr -cs 'A-Za-z' '[\n*]' | sort -u | comm - words > output5
+$ cat output5
+
+This command first edits the assign2.html file and then pipes that into the comm command with the file words that we acquired before. The output of the first part is the same as output5 (unique and sorted words from the html file). That output is compared with the words list. The final output has three columns. The first column contains all words unique to the list created from the html file, the second column contains all words unique to the file words and the third column contains the common words between the two lists. The first column contains a few words, the second column contains many words because it is all the words in the dictionary that aren’t in the list of words from the html file, and the third column contains a few words too.
+
+6.
+
+$ cat assign2.html | tr -cs 'A-Za-z' '[\n*]' | sort -u | comm -23 - words > output6
+$ cat output6
+
+This command is similar to the previous command, but the only difference is that here we are only displaying the first column and surpassing column 2 and 3. The first column will contain the words that are present in the html file but aren’t in the words file (a file that is like an English dictionary). Therefore, it would display all words that are spelled incorrectly and aren’t in this simple English dictionary.
+
+
+We now want to implement a similar spell checker for the Hawaiian language.
+We first need a file that contains a list of Hawaiian words. We acquire this list by editing an html file provided on the assignment website. We get the file using: 
+
+$ wget http://mauimapp.com/moolelo/hwnwdseng.htm
+
+We then perform the following commands to extract the Hawaiian words:
+
+(Note: the -i option with sed is to allow us to edit the file in-place)
+
+Extract lines with <td> in the beginning
+
+	cat hwnwdseng.htm | sed -n -e '/<td>/p' > mod
+
+Delete every other line
+
+	sed -i ‘1~2d’ mod
+
+Delete the <…> tags
+
+	sed -i 's/<[^>]*>//g' mod
+
+Delete leading white space 
+
+	sed -i -e 's/^\s*//g' mod
+
+Replace space between words with new line
+
+	sed -i -e 's/ /\n/g' mod
+
+Get rid of blank lines
+
+	sed -i '/^\s*$/d' mod
+
+Delete commas
+
+	sed -i -e 's/,//g' mod
+
+Make lowercase and change to apostrophes 
+
+	cat mod | tr "A-Z\`" "a-z\'"
+
+Remove all words with non-hawaiian letters
+
+	grep -v "[^pk\'mnwlhaeiou]" mod
+
+Sort words and remove duplicates
+
+	sort -u mod -o mod
+
+We then automate this process by putting these commands into a shell script called buildwords:
+
+#!/bin/sh
+
+sed -n -e '/<td>/p' |
+
+sed '1~2d' |
+
+sed 's/<[^>]*>//g' |
+
+sed -e 's/^\s*//g' |
+
+sed -e 's/ /\n/g' |
+
+sed '/^\s*$/d' |
+
+sed -e 's/,//g' |
+
+tr "A-Z\`" "a-z\'" |
+
+grep -v "[^pk\'mnwlhaeiou]" |
+
+sort -u
+
+We then give this file executable permission using:
+
+$ chmod +x buildwords
+
+We can now create the Hawaiian dictionary using the shell script and the following command:
+
+$ cat hwnwdseng.htm | ./buildwords > hwords
+
+hwords now contains a list of Hawaiian words taken from the website provided on the course webpage.
+
+We run the following command to display the list of misspelled Hawaiian words:
+
+$ cat assign2.html | tr '[:upper:]' '[:lower:]' | tr -cs “A-Za-z” '[\n*]' | sort -u | comm -23 - hwords
+
+The above command firsts converts everything to lowercase in the html file. It then extracts all the words from this html file. This list is then sorted and piped into the comm command with hwords, which is a list of Hawaiian words. Some of the words from the output are:
+
+a
+able
+about
+above
+abovementioned
+accent
+address
+after
+afterwards
+against
+all
+also
+an
+. . .
+
+The number of words is 405 (we pipe the list into wc -w to get the number of words)
+
+If we only compare the words that contain the Hawaiian script, with: 
+
+$ cat assign2.html | tr '[:upper:]' '[:lower:]' | tr -cs “pk\’mnwlhaeiou” '[\n*]' | sort -u | comm -23 - hwords | wc -w
+
+We get 197 misspelled words.
+
+
+We run the following command to display the list of misspelled English words:
+
+$ cat assign2.html | tr '[:upper:]' '[:lower:]' | tr -cs “A-Za-z” '[\n*]' | sort -u | comm -23 - words
+
+The above command firsts converts everything to lowercase in the html file. It then extracts all the words from this html file. This list is then sorts and piped into the comm command with words, which is a list of english words. Some of the words from the output are:
+
+basedefs
+buildwords
+charset
+cmp
+ctype
+doctype
+eggert
+eword
+halau
+href
+htm
+html
+http
+. . .
+
+The number of words is 38 (we pipe the list into wc -w to get the number of words)
+
+We save the words misspelled as English in a file called misEnglish and the words misspelled as Hawaiian in a file called misHawaiian and then run the following command:
+
+$ comm misEnglish misHawaiian
+
+We notice that there are unique words as all three columns are filled.
+
+Words misspelled in English but not in Hawaiian are: halau, lau, wiki.
+
+Some words misspelled in Hawaiian but not in English are: example, many, thing, user, were, etc. (370 words)
+
+
+
+

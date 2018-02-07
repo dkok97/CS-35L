@@ -1,0 +1,100 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Laboratory: Installing a small change to a big package
+
+I first perform the following commands 
+to obtain all the files is Coreutils 7.6:
+
+$ wget ftp://ftp.gnu.org/gnu/coreutils/coreutils-7.6.tar.gz
+$ tar -xzvf coreutils-7.6.tar.gz
+
+I then cd into the directory Coreutils 7.6. 
+I find a file called INSTALL and I read the file using:
+
+$ cat INSTALL
+
+I find the command in INSTALL to configure it 
+and run the following command:
+
+$ ./configure --prefix=/u/ma/ugrad/dinkar/coreutils
+
+I now navigate to the directory where
+I installed this version of Coreutils
+
+I then ran the following command to set the locale:
+
+$ export LC_ALL='en_US.UTF-8'
+
+I run which ls to find where the program is located. 
+It is in the bin folder. 
+I cd into the bin folder and run the buggy program:
+
+./ls -l
+
+A few of the outputs are:
+
+-rwxr-xr-x 1 dinkar maugrad 107235 2017-10-24 04:54 [
+-rwxr-xr-x 1 dinkar maugrad  97899 2017-10-24 04:54 base64
+-rwxr-xr-x 1 dinkar maugrad  75911 2017-10-24 04:54 basename
+
+This is buggy because the date format is YYYY-MM-DD
+
+To apply the patch:
+
+1. I cd into the coreutils-7.6 directory.
+2. I create and edit a new file called patch-diff using vim.
+3. I change a/NEWS, b/NEWS, a/src/ls.c, b/src/ls.c 
+   with .a/NEWS, b/NEWS, a/src/ls.c, b/src/ls.c
+4. I run the command:
+   $ patch -p0 < patch.diff
+5. Re-install the program using:
+$ make
+I notice that there are fewer lines in the output for make.
+This is because we only need to re-install the ls part of the program.
+The make program finds the relevant directories where the patch made a change.
+It only re-makes these programs.
+Everything else is ignored.
+
+I can now compare this fixed version of ls to the broken version in:
+/u/ma/ugrad/dinkar/coreutils (make installed the program here initially)
+
+I run the command with the fixed ls:
+
+$ ./src/ls -l /u/ma/ugrad/dinkar/coreutils/bin 
+
+I run it for this directory because it’s the same one we ran the broken ls for.
+
+The output is:
+
+-rwxr-xr-x 1 dinkar maugrad 107235 Oct 24 04:54 [
+-rwxr-xr-x 1 dinkar maugrad  97899 Oct 24 04:54 base64
+-rwxr-xr-x 1 dinkar maugrad  75911 Oct 24 04:54 basename
+
+The time formate is now Month Day Time.
+Therefore, it is fixed and I get the correct data format.
+
+We run both versions of ls after patching and, 
+notice that the old ls still does not work properly because,
+it wasn’t overwritten by re-installation.
+
+I now run the fixed ls on a directory that has files more than a year old.
+
+$ ./src/ls -l /u/ma/ugrad/dinkar/
+
+Some of the output is:
+
+-rw-r--r-- 1 dinkar maugrad  4168 Oct 29  2016 main.cpp
+drwx------ 2 dinkar maugrad  4096 Sep 27  2016 nsdefault
+drwxr-xr-x 2 dinkar maugrad  4096 Jun  9 00:50 openmplab
+drwxr-xr-x 2 dinkar maugrad  4096 Mar  7  2017 p0
+
+
+We see two different types of output.
+One type is for recent files, and one is for files more than a year old.
+
+For recent files, the format is Month Day Time.
+For files in more than a year old, the format is Month Day Year.
+
+

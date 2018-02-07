@@ -1,0 +1,235 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Homework: Learning to use Emacs
+
+Exercise 1.1: Moving around in Emacs
+
+1. 
+
+We enter the text editor in emacs using:
+
+$ emacs exer1.html
+
+2. 
+
+C-s P U B L I C M-f Enter
+
+3. 
+
+M-<
+C-s L A B M-b
+
+4. 
+
+M-<
+C-s s e l f - r M-b
+
+5. 
+
+M-<
+C-s a r r o w M-b
+
+6.
+
+C-e
+
+7. 
+
+C-a
+
+8. 
+
+If you use the emacs commands like I did above, you wouldn’t require the use of the arrow keys.
+
+9. 
+
+No, I used emacs commands, not arrow keys.
+
+10.
+
+C-x C-c
+ 
+
+Exercise 1.2: Deleting text in Emacs
+
+1. 
+
+$ emacs exer2.html
+
+2. 
+
+M-g g 1 8 Enter
+C-k
+
+3. 
+
+C-s D E L Enter
+C-a
+C-k
+
+4. 
+
+C-s < ! Enter
+C-a
+C-k C-k C-k C-k C-k
+
+5. 
+
+C-s < ! Enter
+C-b C-b C-M-k
+C-x C-s C-x C-c
+
+
+Exercise 1.3: Inserting text in Emacs
+
+1. 
+
+$ emacs exer3.html
+
+2. 
+
+C-s A s s i g n m e n t SP 1 M-% A s s i g n m e n t SP 3 7 Enter y y
+
+3. 
+
+M-<
+C-s U T F - 8 M-% U S - A S C I I Enter y
+
+4. 
+
+M-<
+C-s < / o l Enter
+C-a Enter
+
+5. 
+
+
+
+Exercise 1.4: Other editing tasks in Emacs
+
+1. 
+
+
+$ cat exer2.html exer2.diff >exer4.html
+
+2. 
+
+$ emacs exer4.html
+
+3. And 4.
+
+M->
+C-r < ! Enter C-@ C-s - > M-w
+M-g g 3 3 9 Enter M-b M-b M-f C-y
+M-> C-r C-r < ! Enter C-@ C-e C-n C-n M-w
+M-g g 3 0 1 Enter C-y C-a C-d C-p C-d
+M-> C-r M-p C-r C-r C-r Enter C-@ C-e M-w
+M-g g 9 4 Enter C-y
+M-> C-r M-p C-r C-r C-r C-r Enter C-@ C-e M-w
+M-g g 1 8 Enter C-y
+
+5.
+
+M-g g 3 5 5
+C-SP
+M-> C-r - - - C-r Backspace
+
+6.
+
+C-w
+ 
+7. 
+
+C-r < / h t m C-e C-o DOWN < ! - - M-> - - >
+
+8. 
+
+M-<
+M-x r e p l a c e - s t r i n g Enter
+< o l > Enter
+< O L > Enter
+
+9. 
+
+diff -u exer1.html exer4.html >exer4.diff
+
+Exercise 1.5: Doing commands in Emacs
+
+1. 
+
+$ emacs mkdir ~/junk
+C-z
+$ emacs ~/junk
+
+2. 
+
+C-x C-f h e l l o . c Enter
+
+3. 
+
+M-x c o m p i l e BACKSP BACKSP BACKSP BACKSP BACKSP BACKSP BACKSP BACKSP g c c SP - o SP h e l l o h e l l o . c Enter
+
+4. 
+
+C-x b h e l l o - o u t Enter
+C-u M-! . / h e l l o Enter
+
+5. 
+
+#include <stdio.h>                                                                                                                                                                                          
+int                                                                                                                                                                                                         
+main (void)                                                                                                                                                                                                 
+{                                                                                                                                                                                                           
+  char n = '\n';                                                                                                                                                                                            
+  char b = '\\';                                                                                                                                                                                            
+  char q = '"';                                                                                                                                                                                             
+  char const *p = "#include <stdio.h>%cint%cmain (void)%c{%c  char n = '%cn';%c  char b = '%c%c';%c  char q = '%c';%c  char const *p = %c%s%c;%c  printf (p, n, n, n, n, b, n, b, b, n, q, n, q, p, q, n, n\
+, n, n);%c  return 0;%c}%c";                                                                                                                                                                                
+  printf (p, n, n, n, n, b, n, b, b, n, q, n, q, p, q, n, n, n, n);                                                                                                                                         
+  return 0;                                                                                                                                                                                                 
+}  
+
+Exercise 1.6: Running Elisp code
+
+1. 
+
+$ emacs
+C-x
+
+2. 
+
+( r a n d o m ) C-j
+
+3. 
+ 
+( s e t q SP x SP ( r a n d o m ) ) C-j
+( s e t q SP y SP ( r a n d o m ) ) C-j
+
+4. 
+
+( * SP x SP y ) C-j
+
+x is -737004071327947834
+y is -1000278277145540493
+Their product is 470588570765279730, which is mathematically incorrect.
+
+5. 
+
+M-: ( * SP x SP y ) Enter
+This has the same output
+
+6.
+
+The random function does not generate truly random numbers. The numbers are limited to a finite range, if the numbers were true random they would have an infinite range but that’s not possible in a computer with limited memory. The program probably uses an input seed at the time of the call to generate the random number, which makes it not truly random. Or the program may use some other sort of algorithm or dynamic input to generate this number. Such numbers are called pseudo-random.
+When we call the random function, we get a different number every time and the pattern seems random, but the underlying generation of this number isn’t.
+
+7. 
+
+The numbers that are generated will fall between the limits of long. So the range for these numbers is -2^64-1 to 2^64.
+The probability of the product overflowing is very high. The total combination of the product is 2^2n.
+The product will by x*y. Using combinations, we fix the number x that has the above range and calculate the number of inputs for y that will overflow the product.
+Suppose, when x is 0/1, y can be anything and the product would not overflow. When x is 2, y needs to be <= (2^n)/2 and >= -(2^n)/2 for the product to not overflow. So y can be half the numbers.
+Using this, I found out that more than 99% of the products will overflow. So the chances of the product overflowing is very high.
+

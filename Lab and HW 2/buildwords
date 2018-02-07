@@ -1,0 +1,22 @@
+#!/bin/sh
+
+sed -n -e '/<td>/p' |
+
+sed '1~2d' |
+
+sed 's/<[^>]*>//g' |
+
+sed -e 's/^\s*//g' |
+
+sed -e 's/ /\n/g' |
+
+sed '/^\s*$/d' |
+
+sed -e 's/,//g' |
+
+tr "A-Z\`" "a-z\'" |
+
+grep -v "[^pk\'mnwlhaeiou]" |
+
+sort -u 
+

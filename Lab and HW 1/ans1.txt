@@ -1,0 +1,181 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Laboratory: Linux and Emacs scavenger hunt
+
+1.
+
+$ man -k keyword
+
+After reading the man page of the command ‘man’ (using $ man man), I found out that we can use the -k tag to search for a keyword.
+
+2.
+
+$ which cp
+/usr/bin/cp
+
+$ which wc
+/usr/bin/wc
+
+I used the command which <command_name> which returns the full path of the command.
+I found out about this command using:
+$ man -l path command
+
+3.
+
+I search for these executables in the directory /usr/bin.
+
+To get the required files, I use:
+$ find -executable -iname ‘?’
+.
+./[
+./w
+./X
+
+I read the man find page to learn about these commands
+
+To find out what these executables do, we read their man page.
+
+[ - the man page does not specify what this command does, so I ignored it.
+w - Show who is logged on and what they are doing.
+X - man X does not return anything. I ran ls -l and found out it is a link to Xord. man Xorg tells us that it is is a network-transparent graphical window system.
+
+4.
+
+I found the command readlink using man -k symbolic links that prints symbolic links.
+So the command I ran is:
+$ readlink /usr/bin/emacs
+/etc/alternatives/emacs
+
+So /etc/alternatives/emacs is the file that is executed.
+
+5.
+
+I looked at the man page of chmod to find out about what the following are.
+
+g+s: This command sets the group ID (setgid) of the current directory. So this command gives the user permissions of the group owner of the files.
+o+x: This command removes the permission to execute from the files in that directory for other users.
+
+6.
+
+I searched the man page of find and found the command mtime.
+The command I used is:
+$ find -mtime 21
+Which searches for files modified 21*24 hours ago, which is 3 weeks.
+
+7.
+
+I used the command:
+$ find -mtime 21 -type d
+
+This returned no files because I’m in a directory where I don’t have permission or no directory has been modified.
+
+8.
+
+I first locate where find is located using:
+$ which find
+/usr/bin/find
+
+So I go to the /usr/bin directory.
+
+Once I am in the directory, I ran the command:
+$ find -type l
+
+This lists all the symbolic links (found in the man page of find)
+
+The output is:
+
+./xzegrep
+./htxelatex
+./mysql_config
+./gpgv
+./lpstat
+./pnmcomp
+./mac2unix
+./texconfig-dialog
+./latex
+./gnatgcc
+./dvired
+./jstack
+./pnmenlarge
+./wsgen
+./apropos
+./mk4ht
+./pstack
+./rmid
+./sgml2xml
+. . . . . 
+
+I will not list all of them. It prints out 293 symbolic links.
+We can find the number using the command:
+$ ls -l | grep ^l | wc
+This counts the number of lines of the output (used man grep to learn about it)
+
+9.
+
+I list all the files using ls with the flags -t that sorts it using modification time and the flag -l to output a long list so I can tell which is a regular file (the ones that start with ‘-‘)
+I learnt about this using man ls.
+The command is:
+
+$ ls -t -l
+
+This outputs all the files with time. The last one is libgpg-error.so.0.10.0, which is the oldest file.
+
+10.
+
+I run the command man locale for information about the command.
+It says /usr/share/i18n/locales is the usual path for locale definition files, so that might be the directory for its data files.
+Also, after some research, I found out that the environment variables that the command is based on are defined in the Base Definitions volume of IEEE Std 1003.1-2001, Chapter 7, Locale.
+Also, there are locale files in a subdirectory of usr that I found using find -name locale that might contain the data.
+
+11.
+
+To search for commands with a keyword, I used C-h a. This allowed me to type a keyword into the mini-buffer. I typed ‘sort’ and the output was the following commands:
+Buffer-menu-sort
+sort-columns
+sort-fields
+sort-lines
+sort-numeric-fields
+sort-pages
+sort-paragraphs
+sort-regexp-fields
+tabulated-list-col-sort
+tabulated-list-sort
+
+12.
+
+C-M-a (beginning-of-defun): Moves the cursor to the beginning of the function the pointer is in.
+
+C-M-b (backward-sexp): Moved the cursor by one word, i.e., movement in a balanced expression.
+
+C-M-c (exit-recursive-edit): Exit from the innermost recursive edit or minibuffer.
+
+C-M-d (down-list): Move forward down into the nearest group of balanced parentheses.
+
+C-M-e (end-of-defun): Moves the cursor to the end of the function the pointer is in.
+
+C-M-f (forward-sexp): Moved the cursor by one word, i.e., movement in a balanced expression.
+
+C-M-g: does nothing
+
+C-M-h (mark-defun): Put region around whole current or following defun
+
+13.
+
+I used C-h k C-g to find out what the command does. It said, 
+
+C-g: C-g runs the command keyboard-quit, which is an interactive compiled
+
+Basically, it aborts the current command that is running. During the execution of a Lisp code, for example like search, sort or list, this character aborts the process abruptly.
+
+14.
+
+I ran the command C-h-b “yank” and found out that yank pastes the last stretch of killed text.
+
+15.
+
+The difference is that the dired command in emacs also lists the current and parent directory (. and ..) and ls -l does not.
+Also, dired lists the available memory in the first line and ls -l does not.
+
+

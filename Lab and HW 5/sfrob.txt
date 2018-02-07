@@ -1,0 +1,159 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Homework: Encrypted sort revisited
+
+I first created the sfrobu.c program
+by modifying sfrob.c and adding the f option.
+I then created the shell script sfrobs with f.
+
+I created an executable using:
+
+$ gcc -std=c99 -o sfrobu sfrobu.c
+
+I created 3 text files with repeating the line,
+
+*~BO *{_CIA *hXE]D *LER
+
+50, 500, and 10000 times.
+
+Using:
+
+yes *~BO *{_CIA *hXE]D *LER | head -n n > inputn
+
+(Where n=50,500,10000)
+
+I used these three files for testing the programs.
+
+1. The first comparison is between sfrob and sfrobu.
+
+time ./sfrob < input50
+
+real	0m0.003s
+user	0m0.000s
+sys	0m0.001s
+
+time ./sfrob < input500
+
+real	0m0.008s
+user	0m0.003s
+sys	0m0.002s
+
+time ./sfrob < input10000
+
+real	0m0.065s
+user	0m0.037s
+sys	0m0.012s
+
+—————————————————————————
+
+time ./sfrobu < input50
+
+real	0m0.002s
+user	0m0.000s
+sys	0m0.002s
+
+time ./sfrobu < input500
+
+real	0m0.007s
+user	0m0.002s
+sys	0m0.005s
+
+time ./sfrobu < input10000
+
+real	0m0.068s
+user	0m0.023s
+sys	0m0.044s
+
+Firstly, in particular, sys time for sfrob in all cases
+is less than the sys time for sfrobu.
+This is because since sfrob uses buffered I/O,
+it requires lesser number of sys calls than sfrobu.
+In sfrobu, every byte is read individually, whereas
+in sfrob we store the input in a buffer.
+
+The other times (real and user) are roughly the same
+for sfrob anf sfrobu.
+
+2. Estimating number of comparisons.
+
+We use the qsort function to sort the words.
+The bigO of qsort is O(nlogn) on average.
+Where n is the number of words.
+
+To find out the exact number of comparisons,
+we added an integer to the program that increments
+everytime frobcmp is called.
+
+For the first input file (200 words),
+the number of comparisons is 842. 
+For the second input file (2000 words),
+the number of comparisons is 12540.
+For the third input file (40000 words),
+the number of comparisons is 356912.
+
+Therefore, we notice that the number of comparisons
+is about n*log(n), where n is the number of words.
+This is correct because that’s how qsort works. 
+
+3. Comparing sfrob, sfrobu, sfrobs, sfrobu -f, and sfrobs -f
+
+For this comparison, I just use the biggest input file.
+
+time ./sfrob < input10000
+
+real	0m0.050s
+user	0m0.037s
+sys	0m0.011s
+
+time ./sfrobu < input10000
+
+real	0m0.058s
+user	0m0.021s
+sys	0m0.036s
+
+time ./sfrobu -f < input10000
+
+real	0m0.072s
+user	0m0.039s
+sys	0m0.032s
+
+time ./sfrobs < input10000
+
+real	0m0.030s
+user	0m0.018s
+sys	0m0.012s
+
+time ./sfrobs -f < input10000
+
+real	0m0.041s
+user	0m0.027s
+sys	0m0.014s
+
+The decreasing order of runtime is:
+
+sfrobu -f < sfrobu < sfrob < sfrobs -f < sfrobs
+
+Firstly, the -f tag makes execution slower
+because there is an extra function call (toupper)
+being made.
+
+Secondly, for such a large file, we notice
+that sfrobs is faster than sfrob and sfrobu.
+However, when I ran this on smaller files,
+sfrobs was slightly slower than the other two.
+
+This is probably because piping is slightly slower
+than buffered/unbuffered I/O and because bash is
+an interpreted language, which is slower.
+However, if the size of the file is large enough, 
+the overwhelming number of syscalls and function calls
+in sfrobu and sfrob take more time than to execute 
+than sfrobs (no function calls), and so the 
+shell script is slightly faster than the other two.
+
+
+
+
+

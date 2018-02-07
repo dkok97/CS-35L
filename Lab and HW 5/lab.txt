@@ -1,0 +1,201 @@
+CS 35L
+DINKAR KHATTAR
+204818138
+
+Lab: Buffered versus unbuffered I/O
+
+I first wrote two C programs:
+
+1. tr2b: It is a C transliteration program,
+that uses getchar and purchar, 
+and acts like the tr command to transliterate 
+bytes from one string to another.
+
+2. tr2u: It is a C transliteration program,
+that uses read and write, 
+and acts like the tr command to transliterate 
+bytes from one string to another.
+
+Both programs first have error checks like, 
+number of arguments, length of from and to,
+and duplicate bytes in from.
+
+The first program is based on buffered I/O.
+The second program is based on unbuffered I/O.
+
+Both programs compare one byte at a time.
+We first read the input byte, compare it in from,
+and then replace it (or not) and write it out.
+
+We create executables for the programs using:
+
+$ gcc -std=c99 -o tr2b tr2b.c
+$ gcc -std=c99 -o tr2u tr2u.c
+
+We now use the strace command to
+compare the system calls issued by the programs.
+
+For testing purposes, we generate a file
+that is at least 5MB big using:
+
+$ head --bytes=5000000 /dev/urandom > input
+
+a) when copying one file to another
+
+We use the -c tag that counts time, calls, and errors
+for each syscall and reports summary.
+This is better than the -o tag because we don’t need to
+print the syscalls.
+
+1. tr2b
+
+$ strace -c ./tr2b abc xyz < input.txt > output
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+  0.00    0.000000           0         2           read
+  0.00    0.000000           0         1           write
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         4           fstat
+  0.00    0.000000           0        10           mmap
+  0.00    0.000000           0         3           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                    29         1 total
+
+
+2. tr2u
+
+$ strace -c ./tr2u abc xyz < input.txt > output
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 56.97    0.572263           0   5000000           write
+ 43.03    0.432257           0   5000002           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         2           fstat
+  0.00    0.000000           0         8           mmap
+  0.00    0.000000           0         3           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    1.004520              10000024         1 total
+
+Therefore, we notice that tr2b, which uses the buffer I/O
+has significantly fewer syscalls than the unbuffered version.
+
+This is probably because there are 2 syscalls being made
+for each byte when using unbuffered I/O, whereas for
+the buffered version, the bytes are stored in a buffer
+which reduces the number of syscalls.
+
+b) when copying a file to your terminal
+
+1. tr2b
+
+$ strace -c ./tr2b abc xyz < input.txt
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+  0.00    0.000000           0         2           read
+  0.00    0.000000           0         1           write
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         4           fstat
+  0.00    0.000000           0        10           mmap
+  0.00    0.000000           0         3           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           archèprctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                    29         1 total
+
+
+2. tr2u
+
+$ strace -c ./tr2u abc xyz < input.txt
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 57.75    0.479524           0   5000000           write
+ 45.25    0.396381           0   5000002           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         2           fstat
+  0.00    0.000000           0         8           mmap
+  0.00    0.000000           0         3           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.875905              10000024         1 total
+
+We notice again that the number of syscalls for the
+unbuffered version is again considerable more than
+the number of syscalls for the buffered version.
+
+Also, it seems like copying to the terminal is slightly
+slower than writing to another file.
+
+Finally, we use the time command to measure how much faster
+one program is to another using the same input as above.
+
+a) when copying one file to another
+
+1. tr2b
+
+$ time ./tr2b abc xyz < input.txt > output
+
+real	0m0.005s
+user	0m0.000s
+sys	0m0.001s
+
+2. tr2u
+
+$ time ./tr2u abc xyz < input.txt > output
+
+real	0m5.197s
+user	0m0.341s
+sys	0m4.786s
+
+We notice that the unbuffered version that
+uses read and write is significantly slower
+than the buffered version using gechar and putchar.
+
+
+b) when copying a file to your terminal
+
+1. tr2b
+
+$ time ./tr2b abc xyz < input.txt
+
+real	0m0.002s
+user	0m0.000s
+sys	0m0.001s
+
+2. tr2u
+
+$ time ./tr2u abc xyz < input.txt
+
+real	0m6.400s
+user	0m0.337s
+sys	0m6.055s
+
+Again, the buffered version is much faster
+than the unbuffered version.
+Also, writing out to the terminal is slightly
+slower than writing to another file. 
+
